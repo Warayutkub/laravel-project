@@ -51,6 +51,7 @@
                </span></a></li>
                 @guest<li><a href="{{route('login')}}">ล็อกอิน</a></li>
             <li><a href="{{route('register')}}">ลงทะเบียน</a></li>@else
+            <li><a href="{{URL::to('order')}}">ข้อมูลการสั่งซื้อสินค้า</a></li>
             <li><a href="#">{{ Auth::user()->name }}</a></li>
             <li><a href="{{ route('logout') }}">ออกจากระบบ </a></li> 
         @endguest

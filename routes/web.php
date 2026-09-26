@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -46,7 +47,8 @@ Route::get('/cart/complete',[CartController::class,'complete']);
 Route::get('/cart/finish',[CartController::class,'finish_order']);
 
 Auth::routes();
-
+Route::get('/order',[OrderController::class,'index'])->name('order');
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/logout', [App\Http\Controllers\HomeController::class, 'logout'])->name('logout');
+
