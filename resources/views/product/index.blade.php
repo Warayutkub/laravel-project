@@ -12,7 +12,9 @@
         {{ csrf_field() }}
 <input type="text" name="q" class="form-control" placeholder="...">
 <button type="submit" class="btn btn-primary">ค้นหา</button>
+@if(Auth::user()->level != 'customer')
 <a href="{{ URL::to('product/edit') }}" class="btn btn-success pull-right">เพิ่มสินค้า</a>
+@endif
 </form>
 </div> 
 <table class="table table-bordered bs-table">
@@ -24,7 +26,10 @@
         <th>ประเภท</th>
         <th>คงเหลือ</th>
         <th>ราคาต่อหน่วย</th>
+        @if(Auth::user()->level != 'customer')
         <th>การทํางาน</th>
+        @endif
+      
     </tr>
 </thead>
 
@@ -39,10 +44,13 @@
 <td>{{ $p->category->name }}</td>
 <td class="bs-price">{{ number_format($p->stock_qty,0) }}</td>
 <td class="bs-price">{{ number_format($p->price,2) }}</td>
+@if(Auth::user()->level != 'customer')
 <td class="bs-center"> 
-<a href="{{ URL::to('product/edit/' . $p->id) }}" class="btn btn-info"><i class="fa fa-edit"></i> แก้ไข</a>
+<a href="{{ URL::to('product/edit/'.$p->id) }}" class="btn btn-info"><i class="fa fa-edit"></i> แก้ไข</a>
 <a href="#" class="btn btn-danger btn-delete" id-delete="{{ $p->id }}"><i class="fa fa-trash"></i> ลบ</a>
+    
 </td>
+@endif
 
 </tr> @endforeach
 </tbody>
