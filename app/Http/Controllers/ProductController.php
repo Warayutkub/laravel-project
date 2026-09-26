@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
-use Config, Validator;
+use Illuminate\Support\Facades\Validator;
+use Config;
 
 class ProductController extends Controller
 {
@@ -36,7 +37,7 @@ class ProductController extends Controller
             return view('product/add')
             ->with('categories',$categories);
         }
-            
+
         }
    public function update(Request $request) {
         $rules = array(
@@ -64,7 +65,7 @@ class ProductController extends Controller
             ->withErrors($validator)
             ->withInput();
         }
-        
+
 
 
         $product = Product::find($id);
@@ -128,5 +129,5 @@ class ProductController extends Controller
         ->with('ok', true)
         ->with('msg', 'ลบข้อมูลสําเร็จ');
     }
-    
+
 }
