@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderDetail;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -53,17 +56,54 @@ class CartController extends Controller
         $cart_items = Session::get('cart_items');
         return view('cart/checkout',compact('cart_items'));
     }
-    public function complete(Request $request){
-        $cart_items = Session::get('cart_items');
-        $cust_name = $request->cust_name;
-        $cust_email = $request->cust_email;
-        $po_no = 'PO'.date("Ymd");
-        $po_date = date("Y-m-d H:i:s");
-        $total_amount = 0;
+   public function complete(Request $request) {
+    $cart_items = Session::get('cart_items');
+    $cust_name  = $request->input('cust_name');
+    $cust_email = $request->input('cust_email');
 
-        foreach($cart_items as $c){
-            $total_amount+= $c['price']*$c['qty'];
+    $total_amount = 0;
+    foreach($cart_items as $c) {
+        $total_amount += $c['price'] * $c['qty'];
+    }
+
+    $order = DB::transaction(function () use ($cart_items, $cust_name, $cust_email, $total_amount) {
+        $today = date('Ymd');
+
+        $todayCount = DB::table('orders')
+            ->whereDate('created_at', date('Y-m-d'))
+            ->lockForUpdate()
+            ->count();
+
+        if ($todayCount == 0) {
+            $nextNumber = 1;
+        } else {
+            $nextNumber = $todayCount + 1;
         }
+
+        $po_no = 'PO' . $today . $nextNumber;
+
+        $order = Order::create([
+            'po_no'          => $po_no,
+            'cust_name'      => $cust_name,
+            'cust_email'     => $cust_email,
+            'po_date'        => now(),
+            'total_amount'   => $total_amount,
+            'payment_status' => false,
+        ]);
+
+        foreach ($cart_items as $c) {
+            OrderDetail::create([
+                'order_id'   => $order->id,
+                'product_id' => $c['id'],
+                'buy_qty'    => $c['qty'],
+            ]);
+        }
+
+        return $order;
+    });
+
+        $po_no   = $order->po_no;
+        $po_date = $order->po_date;
 
         $html_output = view('cart/complete', compact('cart_items', 'cust_name', 'cust_email',
         'po_no', 'po_date', 'total_amount'))->render();
@@ -71,12 +111,12 @@ class CartController extends Controller
         $mpdf = new \Mpdf\Mpdf();
         $mpdf->debug = true;
         $mpdf->WriteHTML($html_output);
-        $mpdf->Output('output.pdf', 'I');
-        return $resp->withHeader("Content-type", "application/pdf");
-
+        $mpdf->Output($po_no . '.pdf', 'I');
+        
         // return view('cart/complete', compact('cart_items', 'cust_name', 'cust_email', 'po_no',
         // 'po_date', 'total_amount'));
     }
+
     public function finish_order(){
         $cart_items = Session::get('cart_items');Session::remove('cart_items');
         return redirect('/');
